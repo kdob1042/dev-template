@@ -38,7 +38,7 @@ jobs:
               core.warning('PROJECTS_TOKEN is not configured; run this workflow manually after adding it to verify Project access.');
               return;
             }
-           const result = await github.graphql(`query($login:String!, $number:Int!) { user(login:$login) { projectV2(number:$number) { viewerCanUpdate fields(first:100) { nodes { ... on ProjectV2SingleSelectField { name options { name } } } } } } }`, {
+            const result = await github.graphql(`query($login:String!, $number:Int!) { user(login:$login) { projectV2(number:$number) { viewerCanUpdate fields(first:100) { nodes { ... on ProjectV2SingleSelectField { name options { name } } } } } } }`, {
               login: process.env.PROJECT_OWNER,
               number: Number(process.env.PROJECT_NUMBER)
             });

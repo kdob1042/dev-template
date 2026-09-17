@@ -1,0 +1,51 @@
+name: Start issue with draft PR
+
+on:
+  issue_comment:
+    types: [created]
+  workflow_dispatch:
+    inputs:
+      issue:
+        description: Issue number for emergency recovery (reuses existing PR)
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: project-sync-${{ github.repository }}
+  cancel-in-progress: false
+
+jobs:
+  start:
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'issue_comment' &&
+       github.event.issue.pull_request == null &&
+       github.event.comment.body == '/start')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+          persist-credentials: false
+      - uses: actions/github-script@v7
+        env:
+          PROJECTS_TOKEN: ${{ secrets.PROJECTS_TOKEN }}
+          PROJECT_OWNER: ${{ vars.PROJECT_OWNER || github.repository_owner }}
+          PROJECT_NUMBER: ${{ vars.PROJECT_NUMBER || '1' }}
+          WORK_BRANCH: ${{ vars.WORK_BRANCH || 'dev' }}
+          PROJECT_SYNC_CI_NAME: ${{ vars.PROJECT_SYNC_CI_NAME || '' }}
+          AUTOMATION_ACTIVATED_AFTER: ${{ vars.AUTOMATION_ACTIVATED_AFTER || '' }}
+          START_ISSUE: ${{ inputs.issue }}
+        with:
+          github-token: ${{ secrets.PROJECTS_TOKEN }}
+          script: |
+            if (!process.env.PROJECTS_TOKEN) throw new Error('Missing repository secret PROJECTS_TOKEN');
+            if (context.eventName === 'workflow_dispatch') {
+              const number = Number(process.env.START_ISSUE);
+              if (!Number.isSafeInteger(number) || number < 1) throw new Error('Invalid issue number');
+              context.payload.issue = { number };
+            }
+            await require('./.github/scripts/project-sync.cjs').start({ github, context, core });

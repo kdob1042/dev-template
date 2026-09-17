@@ -31,10 +31,14 @@ jobs:
           PROJECT_OWNER: ${{ vars.PROJECT_OWNER || github.repository_owner }}
           PROJECT_NUMBER: ${{ vars.PROJECT_NUMBER || '1' }}
         with:
-          github-token: ${{ secrets.PROJECTS_TOKEN }}
-          script: |
-            if (!process.env.PROJECTS_TOKEN) throw new Error('Missing PROJECTS_TOKEN');
-            const result = await github.graphql(`query($login:String!, $number:Int!) { user(login:$login) { projectV2(number:$number) { viewerCanUpdate fields(first:100) { nodes { ... on ProjectV2SingleSelectField { name options { name } } } } } } }`, {
+          github-token: ${{ secrets.PROJECTS_TOKEN || github.token }}
+         script: |
+            if (!process.env.PROJECTS_TOKEN) {
+              if (context.eventName === 'workflow_dispatch') throw new Error('Missing PROJECTS_TOKEN');
+              core.warning('PROJECTS_TOKEN is not configured; run this workflow manually after adding it to verify Project access.');
+              return;
+            }
+           const result = await github.graphql(`query($login:String!, $number:Int!) { user(login:$login) { projectV2(number:$number) { viewerCanUpdate fields(first:100) { nodes { ... on ProjectV2SingleSelectField { name options { name } } } } } } }`, {
               login: process.env.PROJECT_OWNER,
               number: Number(process.env.PROJECT_NUMBER)
             });

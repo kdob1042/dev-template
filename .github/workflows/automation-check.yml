@@ -1,0 +1,51 @@
+name: Automation checks
+
+on:
+  pull_request:
+    branches: [dev, main]
+    paths: ['.github/scripts/**', '.github/workflows/**', 'AGENTS.md', 'docs/**', '.github/ISSUE_TEMPLATE/**']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node --test .github/scripts/project-sync.test.cjs
+  project-access:
+    # No checkout or repository code execution in the credential probe job.
+    if: github.event_name == 'workflow_dispatch' || github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/github-script@v7
+        env:
+          PROJECTS_TOKEN: ${{ secrets.PROJECTS_TOKEN }}
+          PROJECT_OWNER: ${{ vars.PROJECT_OWNER || github.repository_owner }}
+          PROJECT_NUMBER: ${{ vars.PROJECT_NUMBER || '1' }}
+        with:
+          github-token: ${{ secrets.PROJECTS_TOKEN || github.token }}
+          script: |
+            if (!process.env.PROJECTS_TOKEN) {
+              if (context.eventName === 'workflow_dispatch') throw new Error('Missing PROJECTS_TOKEN');
+              core.warning('PROJECTS_TOKEN is not configured; run this workflow manually after adding it to verify Project access.');
+              return;
+            }
+            const result = await github.graphql(`query($login:String!, $number:Int!) { user(login:$login) { projectV2(number:$number) { viewerCanUpdate fields(first:100) { nodes { ... on ProjectV2SingleSelectField { name options { name } } } } } } }`, {
+              login: process.env.PROJECT_OWNER,
+              number: Number(process.env.PROJECT_NUMBER)
+            });
+            const project = result.user?.projectV2;
+            if (!project?.viewerCanUpdate) throw new Error('PROJECTS_TOKEN cannot update the configured Project');
+            const status = project.fields.nodes.find(f => f.name === 'Status');
+            for (const name of ['Todo', 'In Progress', 'Needs attention', 'Done']) {
+              if (!status?.options.some(o => o.name === name)) throw new Error('Missing status: ' + name);
+            }
+            core.notice('Project write access and all status options verified.');

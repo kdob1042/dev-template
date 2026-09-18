@@ -2,11 +2,53 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "version": 1,
   "phases": [
-    {"id": "classify", "required": true, "output": ["task_type", "route", "profile", "risk"]},
-    {"id": "plan", "required": true, "output": ["scope", "source_of_truth", "acceptance_conditions", "next_action"]},
-    {"id": "implement", "required": true, "output": ["changed_files", "decisions", "unresolved_questions"]},
-    {"id": "verify", "required": true, "output": ["commands", "results", "remaining_risk"]},
-    {"id": "handoff", "required": true, "output": ["handoff_packet", "next_action", "current_branch_or_pr"]}
+    {
+      "id": "classify",
+      "required": true,
+      "output": [
+        "task_type",
+        "route",
+        "profile",
+        "risk"
+      ]
+    },
+    {
+      "id": "plan",
+      "required": true,
+      "output": [
+        "scope",
+        "source_of_truth",
+        "acceptance_conditions",
+        "next_action"
+      ]
+    },
+    {
+      "id": "implement",
+      "required": true,
+      "output": [
+        "changed_files",
+        "decisions",
+        "unresolved_questions"
+      ]
+    },
+    {
+      "id": "verify",
+      "required": true,
+      "output": [
+        "commands",
+        "results",
+        "remaining_risk"
+      ]
+    },
+    {
+      "id": "handoff",
+      "required": true,
+      "output": [
+        "handoff_packet",
+        "next_action",
+        "current_branch_or_pr"
+      ]
+    }
   ],
   "source_of_truth": {
     "user_scope": "The current explicit user request",
@@ -37,9 +79,16 @@
       "Continue from the recorded next action; do not repeat discovery without a reason."
     ],
     "required_packet_fields": [
-      "goal", "scope_and_constraints", "route_and_profile", "source_of_truth",
-      "current_branch_or_pr", "changed_files", "tests_and_results",
-      "remaining_work", "unresolved_decisions", "next_action"
+      "goal",
+      "scope_and_constraints",
+      "route_and_profile",
+      "source_of_truth",
+      "current_branch_or_pr",
+      "changed_files",
+      "tests_and_results",
+      "remaining_work",
+      "unresolved_decisions",
+      "next_action"
     ]
   },
   "completion_gate": [

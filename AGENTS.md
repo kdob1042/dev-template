@@ -19,3 +19,18 @@
 - PR本文に独立した行で`Refs #<番号>`を残す。受入条件をすべて満たす場合だけ`Closes #<番号>`（`Fixes`／`Resolves`も可）へ変更する。
 - 部分実装なら、マージ前に残件を新しいIssueへ切り出し、その本文に独立した行で`Parent: #<元Issue番号>`を記載する。残件Issueなしに部分PRだけで元Issueを完了扱いにしない。
 - 詳細な状態遷移、障害復旧、Project設定は`docs/PROJECT_AUTOMATION.md`と`docs/ISSUE_WORKFLOW.md`を参照する。
+
+<!-- MAC-ENABLER:BEGIN -->
+## Shared Codex workflow
+
+このブロックは `kdob1042/mac-enabler` から生成された共通運用部分です。直接編集せず、mac-enablerを更新して同期します。
+
+- 作業開始時に、タスクを `triage`・`implementation`・`architecture`・`review`・`verification`・`documentation`・`incident`・`handoff` のいずれかへ分類し、`.codex/mac-enabler/model-routing.json` のプロファイルを確認する。
+- ルートとプロファイルを決めてから実装へ進む。利用ホストがモデルを切り替えられない場合は、選択したプロファイルを報告し、切り替わったと偽らない。
+- プロジェクト固有の設計、ブランチ、テスト、データの正本は、このリポジトリの既存 `AGENTS.md` と設計書に従う。共通ブロックはそれらを上書きしない。
+- Issue／PRを使う場合、作業状態・検証結果・残件の正本はIssue／PRへ残す。
+- `compact`／自動コンパクションの前に、目標、制約、ルート、プロファイル、ブランチ／PR、変更ファイル、テスト結果、残作業、未解決事項、次の一手を引き継ぎパケットとして保存する。
+- コンパクション後または別エージェントへ渡された後は、対象リポジトリの `AGENTS.md` と最新の引き継ぎパケットを読み、記録された次の一手から再開する。
+- 共通ルールとプロジェクトルールが衝突した場合、プロジェクト固有の事実・受入条件を優先する。解決できない場合は推測で進めず、衝突を報告する。
+
+<!-- MAC-ENABLER:END -->
